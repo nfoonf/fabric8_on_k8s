@@ -1,0 +1,76 @@
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  annotations:
+    fabric8.io/git-commit: f347647535c3918d73bfdcd1573146e82d01bd2a
+    fabric8.io/git-branch: release-v2.2.105
+    fabric8.io/git-url: http://gogs.release.cd.fabric8.io/gogsadmin/oss-parent/commit/f347647535c3918d73bfdcd1573146e82d01bd2a
+    fabric8.io/build-id: '2'
+    fabric8.io/build-url: http://jenkins.release.cd.fabric8.io/job/oss-parent/2
+  labels:
+    project: console
+    provider: fabric8
+    version: 2.2.105
+    group: io.fabric8.apps
+    package: console-kubernetes
+  name: fabric8
+spec:
+  replicas: 1
+  selector:
+    project: console
+    provider: fabric8
+    version: 2.2.105
+    group: io.fabric8.apps
+  template:
+    metadata:
+      annotations: {}
+      labels:
+        project: console
+        provider: fabric8
+        version: 2.2.105
+        group: io.fabric8.apps
+        package: console-kubernetes
+    spec:
+      containers:
+      - args: []
+        command: []
+        env:
+        - name: GOOGLE_OAUTH_SCOPE
+          value: profile
+        - name: OAUTH_AUTHORIZE_PORT
+          value: '8443'
+        - name: GOOGLE_OAUTH_CLIENT_ID
+          value: ''
+        - name: OAUTH_AUTHORIZE_URI
+          value: https://vagrant.f8:8443/oauth/authorize
+        - name: GOOGLE_OAUTH_AUTHENTICATION_URI
+          value: https://accounts.google.com/o/oauth2/auth
+        - name: GOOGLE_OAUTH_CLIENT_SECRET
+          value: ''
+        - name: OAUTH_CLIENT_ID
+          value: fabric8
+        - name: OAUTH_PROVIDER
+          value: basic
+        - name: GOOGLE_OAUTH_REDIRECT_URI
+          value: https://fabric8.vagrant.f8
+        - name: GOOGLE_OAUTH_TOKEN_URL
+          value: https://www.googleapis.com/oauth2/v3/token
+        - name: KUBERNETES_NAMESPACE
+          value: default
+        - name: KUBERNETES_MASTER
+          value: https://10.0.0.1:443
+        - name: KUBERNETES_MASTER_URI
+          value: /
+        - name: FABRIC8_PROFILES
+          value: kubernetes
+        image: fabric8/fabric8-console:2.2.105
+        name: fabric8-container
+        ports:
+        - containerPort: 9090
+          name: http
+        securityContext: {}
+        volumeMounts: []
+      imagePullSecrets: []
+      nodeSelector: {}
+      volumes: []

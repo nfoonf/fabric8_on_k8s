@@ -1,0 +1,70 @@
+---
+
+- name: kubernetes deployment
+  hosts: all
+  user: groening
+  #sudo: yes
+  vars:
+   docker_epel_enabled: true
+   docker_containers:
+     - name: etcd
+       image: gcr.io/google_containers/etcd:2.0.12
+       restart_policy: unless-stopped
+       net: host
+       state: started
+       command : '/usr/local/bin/etcd --addr=127.0.0.1:4001 --bind-addr=0.0.0.0:4001 --data-dir=/var/etcd/data'
+
+     - name: kubelet
+       state: started
+       restart_policy: unless-stopped
+       net: host
+       #pid: host
+       privileged: yes
+       image: gcr.io/google_containers/hyperkube:v1.1.4
+       command: '/hyperkube kubelet --containerized --hostname-override="127.0.0.1" --address="0.0.0.0" --api-servers=http://0.0.0.0:8080 --config=/etc/kubernetes/manifests --cluster-dns=10.0.0.10 --cluster-domain=cluster.local --allow-privileged=true --v=2'
+       volumes:
+         - '/:/rootfs:ro'
+         - '/sys:/sys:ro'
+         #- '/dev:/dev:rw'
+         - '/var/lib/docker/:/var/lib/docker:rw'
+         - '/var/lib/kubelet/:/var/lib/kubelet:rw'
+         - '/var/run:/var/run:rw'
+
+     - name: proxy
+       state: started
+       restart_policy: unless-stopped
+       image: gcr.io/google_containers/hyperkube:v1.1.4
+       net: host
+       privileged: yes
+       #expose:
+       # - 8080
+       ports:
+        - "0.0.0.0:8080:8080"
+       command: "/hyperkube proxy --master=http://0.0.0.0:8080 --v=2"
+     - name: fabric8
+       state: present
+       image: fabric8/fabric8-console:2.2.105
+       net: host
+       expose:
+         - 9090
+       ports:
+         - "9090:9090"
+     - name: f8-templates
+       state: present
+       image: fabric8/templates:2.2.105
+
+
+  tasks:
+    - copy: src=files/kubectl dest=~/
+    - copy: src=files/foo.sh dest=~/
+    - copy: src=files/fabric8/fabric8_controller.yml dest=~/
+    - copy: src=files/fabric8/fabric8_service.yml dest=~/
+    #- copy: src=files/fabric8/fabric8_controller.yml dest=~/
+    #- copy: src=files/console-kubernetes-2.2.105-kubernetes.json dest=/home/vagrant
+    #- lineinfile: dest=/etc/fstab state=present line='none /dev/pts devpts defaults 0 0'
+    # iptables -t nat -A PREROUTING -p tcp --dport 9090 -j DNAT --to-destination 172.17.0.2 -i eth0
+    # iptables -t nat -A PREROUTING -p tcp --dport 443 -j DNAT --to-destination 10.0.0.1 -i eth0
+
+  roles:
+    - silpion.util
+    - silpion.docker
